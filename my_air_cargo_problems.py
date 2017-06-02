@@ -70,7 +70,7 @@ class AirCargoProblem(Problem):
                                        ]
                         effect_add = [expr("In({}, {})".format(c, p))]
                         effect_rem = [expr("At({}, {})".format(c, a))]
-                        load = Action(expr("load({}, {}, {})".format(c, p, a)),
+                        load = Action(expr("Load({}, {}, {})".format(c, p, a)),
                                      [precond_pos, precond_neg],
                                      [effect_add, effect_rem])
                         loads.append(load)
@@ -86,13 +86,13 @@ class AirCargoProblem(Problem):
                 for p in self.planes:
                     for c in self.cargos:
                         precond_pos = [expr("At({}, {})".format(p, a)),
-                                       expr("In({}, {})".format(c, a)),
+                                       expr("In({}, {})".format(c, p)),
                                        ]
                         precond_neg = [expr("At({}, {})".format(c, a)),
                                        ]
                         effect_add = [expr("At({}, {})".format(c, a))]
                         effect_rem = [expr("In({}, {})".format(c, p))]
-                        unload = Action(expr("unload({}, {}, {})".format(c, p, a)),
+                        unload = Action(expr("Unload({}, {}, {})".format(c, p, a)),
                                      [precond_pos, precond_neg],
                                      [effect_add, effect_rem])
                         unloads.append(unload)
@@ -131,7 +131,7 @@ class AirCargoProblem(Problem):
         """
         possible_actions = []
         kb = PropKB()
-        kb.tell(decode_state(state, self.state_map).pos_sentence())
+        kb.tell(decode_state(state, self.state_map).sentence())
         for action in self.actions_list:
             is_possible = True
             for clause in action.precond_pos:
@@ -206,9 +206,28 @@ class AirCargoProblem(Problem):
         conditions by ignoring the preconditions required for an action to be
         executed.
         """
-        # TODO implement (see Russell-Norvig Ed-3 10.2.3  or Russell-Norvig Ed-2 11.2)
-        count = 0
-        return count
+
+        """
+        Russell-Norvig tells us that if we ignore pre-conditions then the
+        number of steps required to solve the relaxed problem is the number
+        of unsatisfied goals unless 1) one or more actions achieve multiple
+        goals, or 2) some actions undo the effects of others
+
+        For the purposes of this heuristic we ignore the second exception
+        so that we can continue to say that the number of steps required to 
+        solve the problem is greater than or equal to the number of unsatisfied 
+        goals thus rendering this "number of unsatisfied goals" heuristic 
+        an admissable approximation of ignoring pre-conditions.
+        """
+
+        kb = PropKB()
+
+        # pos_sentence() will ignore negative goals. If negative goals are
+        # required, this should be replaced with sentence() here
+        kb.tell(decode_state(node.state, self.state_map).pos_sentence())
+
+        # Count the number of goal clauses not in the current state
+        return sum(goal_clause not in kb.clauses for goal_clause in self.goal)
 
 
 def air_cargo_p1() -> AirCargoProblem:
