@@ -99,5 +99,8 @@ ENV/
 .idea/
 
 # Udacity results
-isolation-*.zip
-isolation-result-*.json
+cargo_planning-*.zip
+cargo_planning-result-*.json
+
+# vim
+*.swp

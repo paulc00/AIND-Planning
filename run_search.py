@@ -50,6 +50,9 @@ class PrintableProblem(InstrumentedProblem):
 
 
 def run_search(problem, search_function, parameter=None):
+    # PC Added to figure out the long runners
+    from datetime import datetime
+    print("Starting search at {} ...".format(datetime.now().strftime('%T')))
 
     start = timer()
     ip = PrintableProblem(problem)
